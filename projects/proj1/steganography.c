@@ -7,7 +7,7 @@
 ** AUTHOR:      Dan Garcia  -  University of California at Berkeley
 **              Copyright (C) Dan Garcia, 2020. All rights reserved.
 **				Justin Yokota - Starter Code
-**				YOUR NAME HERE
+**				LCJD 
 **
 ** DATE:        2020-08-23
 **
@@ -21,13 +21,49 @@
 //Determines what color the cell at the given row/col should be. This should not affect Image, and should allocate space for a new Color.
 Color *evaluateOnePixel(Image *image, int row, int col)
 {
-	//YOUR CODE HERE
+	Color *color = (Color *)malloc(sizeof(Color));
+	Color *c = &image->image[row][col];
+	uint8_t val = c->B & 1 ? 255 : 0;
+	color->R = val;
+	color->G = val;
+	color->B = val;
+	return color;
 }
 
 //Given an image, creates a new image extracting the LSB of the B channel.
 Image *steganography(Image *image)
 {
-	//YOUR CODE HERE
+	Image *newImg= (Image*)malloc(sizeof(Image));
+	newImg->cols = image->cols;
+	newImg->rows = image->rows;
+	newImg->image = (Color**)malloc(image->rows * sizeof(Color*));
+	Color **rawColors = image->image;
+	Color **newColors = newImg->image;
+	int h = newImg->rows;
+	int w = newImg->cols;
+	for (int i = 0 ; i < h; i++) {
+		newColors[i] = (Color*)malloc(w * sizeof(Color));
+	}
+	for (int i = 0 ; i < h; i++) {
+		for (int j = 0 ; j < w; j++) {
+			Color *c = evaluateOnePixel(image, i, j);
+			newColors[i][j].R = c->R;
+			newColors[i][j].G = c->G;
+			newColors[i][j].B = c->B;
+			free(c);
+		}
+	}
+	return newImg;
+}
+
+void processCLI(int argc, char **argv, char **filename) 
+{
+	if (argc != 2) {
+		printf("usage: %s filename\n",argv[0]);
+		printf("filename is an ASCII PPM file (type P3) with maximum value 255.\n");
+		exit(-1);
+	}
+	*filename = argv[1];
 }
 
 /*
@@ -45,5 +81,11 @@ Make sure to free all memory before returning!
 */
 int main(int argc, char **argv)
 {
-	//YOUR CODE HERE
+	char *filename;
+	processCLI(argc, argv, &filename);
+	Image *img = readData(filename);
+	Image *newImg = steganography(img);
+	writeData(newImg);
+	freeImage(img);
+	freeImage(newImg);
 }
